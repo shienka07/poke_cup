@@ -33,6 +33,12 @@
         font-weight: bold;
         margin-bottom: 50px;
       }
+      #roundInfo {
+        font-size: 30px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        color: #333;
+      }
       #container {
         display: flex;
         justify-content: center;
@@ -77,19 +83,37 @@
         cursor: pointer;
         border: none;
         border-radius: 5px;
-        background-color: #28a745;
+        background-color: #ff3134;
         color: white;
         font-weight: bold;
         transition: background-color 0.3s;
       }
       #startButton:hover {
-        background-color: #218838;
+        background-color: #d30020;
       }
       #result {
+        text-align: "center";
         margin-top: 20px;
         font-size: 26px;
         font-weight: bold;
         color: #333;
+      }
+      #winnerContainer {
+        display: none;
+        margin-top: 30px;
+        font-size: 30px;
+        font-weight: bold;
+        text-align: center;
+      }
+      #winnerContainer img {
+        width: 240px;
+        border-radius: 10px;
+        margin-top: 10px;
+        text-align: center;
+        background: white;
+        padding: 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s;
       }
     </style>
   </head>
@@ -101,8 +125,15 @@
       <img src="image/firstPartner.png" />
       <button id="startButton">시작하기</button>
     </div>
+    <h2 id="roundInfo" style="display: none"></h2>
     <div id="container" style="display: none"></div>
-    <h2 id="result" style="text-align: center; margin-top: 20px"></h2>
+    <h2 id="result"></h2>
+    <div id="winnerContainer">
+      <h2>⭐️ 함께할 포켓몬 ⭐️</h2>
+      <img id="winnerImage" src="" alt="우승자 이미지" />
+      <p id="winnerName"></p>
+      <p>앞으로 잘부탁해!!</p>
+    </div>
 
     <script>
       const nameMapping = {
@@ -126,58 +157,64 @@
 
       let files = Object.keys(nameMapping); // 파일명 리스트
       let shuffled = [...files].sort(() => Math.random() - 0.5); // 순서 섞는 것
+      let currentRound = shuffled.length;
       const container = document.querySelector("#container");
       const resultText = document.querySelector("#result");
       const startButton = document.querySelector("#startButton");
       const startScreen = document.querySelector("#startScreen");
+      const roundInfo = document.querySelector("#roundInfo");
+      const winnerContainer = document.querySelector("#winnerContainer");
+      const winnerImage = document.querySelector("#winnerImage");
+      const winnerName = document.querySelector("#winnerName");
 
       startButton.addEventListener("click", function () {
         startScreen.style.display = "none";
         container.style.display = "flex";
+        roundInfo.style.display = "block";
         displayMatch();
       });
 
       function displayMatch() {
-        container.innerHTML = ""; // 기존 이미지 삭제
+        container.innerHTML = "";
 
         if (shuffled.length === 1) {
-          const winner = shuffled[0]; // 우승자 파일명
-          const winnerName = nameMapping[winner]; // 우승자 실제 이름
-          resultText.textContent = `🏆 우승: ${winnerName} 🏆`;
+          const winner = shuffled[0];
+          winnerName.textContent = nameMapping[winner];
+          winnerImage.src = "image/" + winner + ".png";
+          winnerContainer.style.display = "block";
+          roundInfo.style.display = "none";
           return;
+        } else if (shuffled.length === 8) {
+          currentRound = 8;
+        } else if (shuffled.length === 4) {
+          currentRound = 4;
+        } else if (shuffled.length === 2) {
+          currentRound = 2;
         }
+
+        roundInfo.textContent = `${currentRound}강`;
 
         const pick1 = shuffled.pop();
         const pick2 = shuffled.pop();
 
-        const choice1 = document.createElement("div");
-        choice1.classList.add("choice");
-        const img1 = document.createElement("img");
-        img1.src = "image/" + pick1 + ".png";
-        img1.addEventListener("click", () => {
-          shuffled.unshift(pick1);
+        createChoice(pick1);
+        createChoice(pick2);
+      }
+
+      function createChoice(pick) {
+        const choice = document.createElement("div");
+        choice.classList.add("choice");
+        const img = document.createElement("img");
+        img.src = "image/" + pick + ".png";
+        img.addEventListener("click", () => {
+          shuffled.unshift(pick);
           nextRound();
         });
-        const name1 = document.createElement("p");
-        name1.textContent = nameMapping[pick1];
-        choice1.appendChild(img1);
-        choice1.appendChild(name1);
-
-        const choice2 = document.createElement("div");
-        choice2.classList.add("choice");
-        const img2 = document.createElement("img");
-        img2.src = "image/" + pick2 + ".png";
-        img2.addEventListener("click", () => {
-          shuffled.unshift(pick2);
-          nextRound();
-        });
-        const name2 = document.createElement("p");
-        name2.textContent = nameMapping[pick2];
-        choice2.appendChild(img2);
-        choice2.appendChild(name2);
-
-        container.appendChild(choice1);
-        container.appendChild(choice2);
+        const name = document.createElement("p");
+        name.textContent = nameMapping[pick];
+        choice.appendChild(img);
+        choice.appendChild(name);
+        container.appendChild(choice);
       }
 
       function nextRound() {
